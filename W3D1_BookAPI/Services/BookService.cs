@@ -59,10 +59,8 @@ namespace W3D1_BookAPI.Services
                 _bookContext.SaveChanges();
                 return currentBook;
             }
-            else
-            {
-                throw new Exception("Cannot update a book that doesn't exist.");
-            }
+            return null;
+            //check recording ~8pm
         }
     }
 }
