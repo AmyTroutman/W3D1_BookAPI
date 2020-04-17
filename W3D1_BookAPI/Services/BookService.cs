@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,12 +27,16 @@ namespace W3D1_BookAPI.Services
 
         public Book Get(int id)
         {
-            return _bookContext.Books.FirstOrDefault(b => b.Id == id);
+            return _bookContext.Books
+                .Include(b => b.Author)
+                .FirstOrDefault(b => b.Id == id);
         }
 
         public IEnumerable<Book> GetAll()
         {
-            return _bookContext.Books.ToList();
+            return _bookContext.Books
+                .Include(b => b.Author)
+                .ToList();
             //return _bookContext.Books;
         }
 

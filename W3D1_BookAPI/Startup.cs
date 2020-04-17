@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using W3D1_AuthorAPI.Services;
 using W3D1_BookAPI.Data;
 using W3D1_BookAPI.Services;
 
@@ -27,9 +28,15 @@ namespace W3D1_BookAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc()
+        .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
+        .AddJsonOptions(optionsBuilder =>
+        {
+            optionsBuilder.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+        });
             services.AddDbContext<BookContext>();
             services.AddScoped<IBookService, BookService>();
+            services.AddScoped<IAuthorService, AuthorService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
