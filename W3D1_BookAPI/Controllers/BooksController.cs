@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using W3D1_BookAPI.ApiModels;
 using W3D1_BookAPI.Models;
 using W3D1_BookAPI.Services;
 
@@ -23,59 +21,75 @@ namespace W3D1_BookAPI.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            return Ok(_bookService.GetAll());
+            var bookModels = _bookService
+                .GetAll()
+                .ToApiModels();
+            return Ok(bookModels);
         }
 
         // GET api/values/5
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            Book currentBook = _bookService.Get(id);
-            if (currentBook != null) return Ok(currentBook);
-            return BadRequest();
+            var book = _bookService.Get(id).ToApiModel();
+            if (book == null) return NotFound();
+            return Ok(book);
+        }
+
+        //GET api/author/{authorId}/books
+        [HttpGet("/api/author/{authorId}/books")]
+        public IActionResult GetBooksForAuthor(int authorId)
+        {
+            var bookModels = _bookService
+                .GetBooksForAuthor(authorId)
+                .ToApiModels();
+            return Ok(bookModels);
+        }
+
+        //GET api/publisher/{publisherId}/books
+        [HttpGet("/api/publisher/{publisherId}/books")]
+        public IActionResult GetBooksForPublisher(int publisherId)
+        {
+            var bookModels = _bookService
+                .GetBooksForPublisher(publisherId)
+                .ToApiModels();
+            return Ok(bookModels);
         }
 
         // POST api/values
         [HttpPost]
-        public IActionResult Post([FromBody] Book newBook)
+        public IActionResult Post([FromBody] BookModel newBook)
         {
-            Book book = _bookService.Add(newBook);
-            if (book != null)
+            try
             {
-                return CreatedAtAction("Get", new { Id = newBook.Id }, newBook);
+                _bookService.Add(newBook.ToDomainModel());
             }
-            else
+            catch (System.Exception ex)
             {
-                return BadRequest();
+                ModelState.AddModelError("AddBook", ex.GetBaseException().Message);
+                return BadRequest(ModelState);
             }
+
+            return CreatedAtAction("Get", new { Id = newBook.Id }, newBook);
         }
 
         // PUT api/values/5
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] Book updatedBook)
+        public IActionResult Put(int id, [FromBody] BookModel updatedBook)
         {
-            try
-            {
-                Book book = _bookService.Update(updatedBook);
-                if (book != null)
-                {
-                    return Ok(book);
-                }
-                return BadRequest();
-            }
-            catch(Exception ex)
-            {
-                ModelState.AddModelError("UpdateBookError", ex.Message);
-                return BadRequest(ModelState);
-            }
+            var book = _bookService.Update(updatedBook.ToDomainModel());
+            if (book == null) return NotFound();
+            return Ok(book.ToApiModel());
         }
 
         // DELETE api/values/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public IActionResult Delete(int id)
         {
-            Book currentBook = _bookService.Get(id);
-            _bookService.Remove(currentBook);
+            var book = _bookService.Get(id);
+            if (book == null) return NotFound();
+            _bookService.Remove(book);
+            return NoContent();
         }
     }
 }

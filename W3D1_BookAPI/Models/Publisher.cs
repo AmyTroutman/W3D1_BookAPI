@@ -5,12 +5,13 @@ using System.Threading.Tasks;
 
 namespace W3D1_BookAPI.Models
 {
-    public class Author
+    public class Publisher
     {
         public int Id { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public DateTime BirthDate { get; set; }
+        public string Name { get; set; }
+        public int FoundedYear { get; set; }
+        public string CountryOfOrigin { get; set; }
+        public string HeadQuartersLocation { get; set; }
         public ICollection<Book> Books { get; set; }
     }
 }

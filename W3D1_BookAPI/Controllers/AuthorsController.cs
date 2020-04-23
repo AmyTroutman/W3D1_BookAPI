@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using W3D1_BookAPI.Services;
 using W3D1_BookAPI.Models;
+using W3D1_BookAPI.ApiModels;
 
 namespace W3D1_BookAPI.Controllers
 {
@@ -23,59 +21,57 @@ namespace W3D1_BookAPI.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            return Ok(_AuthorService.GetAll());
+            var authorModels = _AuthorService
+                .GetAll()
+                .ToApiModels();
+            return Ok(authorModels);
         }
 
         // GET api/values/5
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            Author currentAuthor = _AuthorService.Get(id);
-            if (currentAuthor != null) return Ok(currentAuthor);
-            return BadRequest();
+            var author = _AuthorService
+                .Get(id)
+                .ToApiModel();
+            if (author == null) return NotFound();
+            return Ok(author);
         }
 
         // POST api/values
         [HttpPost]
-        public IActionResult Post([FromBody] Author newAuthor)
+        public IActionResult Post([FromBody] AuthorModel newAuthor)
         {
-            Author author = _AuthorService.Add(newAuthor);
-            if (author != null)
+            try
             {
-                return CreatedAtAction("Get", new { Id = newAuthor.Id }, newAuthor);
+                _AuthorService.Add(newAuthor.ToDomainModel());
             }
-            else
+            catch (System.Exception ex)
             {
-                return BadRequest();
+                ModelState.AddModelError("AddAuthor", ex.GetBaseException().Message);
+                return BadRequest(ModelState);
             }
+
+            return CreatedAtAction("Get", new { id = newAuthor.Id }, newAuthor);
         }
 
         // PUT api/values/5
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] Author updatedAuthor)
+        public IActionResult Put(int id, [FromBody] AuthorModel updatedAuthor)
         {
-            try
-            {
-                Author author = _AuthorService.Update(updatedAuthor);
-                if (author != null)
-                {
-                    return Ok(author);
-                }
-                return BadRequest();
-            }
-            catch (Exception ex)
-            {
-                ModelState.AddModelError("UpdateAuthorError", ex.Message);
-                return BadRequest(ModelState);
-            }
+            var author = _AuthorService.Update(updatedAuthor.ToDomainModel());
+            if (author == null) return NotFound();
+            return Ok(author);
         }
 
         // DELETE api/values/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public IActionResult Delete(int id)
         {
-            Author currentAuthor = _AuthorService.Get(id);
-            _AuthorService.Remove(currentAuthor);
+            var author = _AuthorService.Get(id);
+            if (author == null) return NotFound();
+            _AuthorService.Remove(author);
+            return NoContent();
         }
     }
 
